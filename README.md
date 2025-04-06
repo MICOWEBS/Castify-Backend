@@ -82,7 +82,7 @@ For detailed deployment instructions, check the [Render Deployment Guide](docs/d
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/netflix-clone.git
+  github.com/MICOWEBS/Castify-Backend.git
    cd netflix-clone
    ```
 
