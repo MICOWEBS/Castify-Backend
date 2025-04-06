@@ -1,0 +1,149 @@
+############################
+# Render Configuration #
+############################
+
+services:
+  # Web Service
+  - type: web
+    name: netflix-clone
+    env: php
+    plan: standard
+    buildCommand: "./render-build.sh"
+    startCommand: "php artisan serve --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /api/health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_URL
+        fromService:
+          name: netflix-clone
+          type: web
+          property: host
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: netflix-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: netflix-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: netflix-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: netflix-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: netflix-db
+          property: password
+      - key: REDIS_HOST
+        fromService:
+          name: netflix-redis
+          type: redis
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          name: netflix-redis
+          type: redis
+          property: port
+      - key: REDIS_PASSWORD
+        fromService:
+          name: netflix-redis
+          type: redis
+          property: password
+      - key: QUEUE_CONNECTION
+        value: redis
+      - key: CACHE_DRIVER
+        value: redis
+      - key: BROADCAST_DRIVER
+        value: redis
+      - key: FFMPEG_BINARY_PATH
+        value: /usr/bin/ffmpeg
+      - key: FFPROBE_BINARY_PATH
+        value: /usr/bin/ffprobe
+      - key: SCOUT_DRIVER
+        value: database
+      - key: MAIL_MAILER
+        value: resend
+      - key: MAIL_FROM_ADDRESS
+        value: "support@netflixclone.com"
+      - key: MAIL_FROM_NAME
+        value: "Netflix Clone"
+      - key: RESEND_API_KEY
+        sync: false # This hides the value in the Render dashboard
+      - key: FILESYSTEM_DISK
+        value: cloudinary
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: CLOUDINARY_UPLOAD_PRESET
+        value: "netflix_videos"
+      - key: SENTRY_LARAVEL_DSN
+        sync: false
+      - key: SENTRY_TRACES_SAMPLE_RATE
+        value: "0.1"
+      - key: SENTRY_SEND_DEFAULT_PII
+        value: "false"
+      - key: FRONTEND_URL
+        sync: false  # Allow setting this in the dashboard
+
+  # Queue Worker
+  - type: worker
+    name: netflix-queue
+    env: php
+    buildCommand: "./render-build.sh"
+    startCommand: "php artisan queue:work --tries=3 --timeout=300"
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - fromGroup: netflix-env
+
+  # Scheduler Worker
+  - type: worker
+    name: netflix-scheduler
+    env: php
+    buildCommand: "./render-build.sh"
+    startCommand: "php artisan schedule:work"
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - fromGroup: netflix-env
+
+# Databases and Caches
+databases:
+  - name: netflix-db
+    plan: standard
+    databaseName: netflix
+    postgresMajorVersion: 15
+
+services:
+  - type: redis
+    name: netflix-redis
+    plan: standard
+    ipAllowList: []
+
+# Environment Variable Groups
+envVarGroups:
+  - name: netflix-env
+    envVars:
+      - key: APP_KEY
+        generateValue: true
+      - key: APP_URL
+        fromService:
+          name: netflix-clone
+          type: web
+          property: host 
