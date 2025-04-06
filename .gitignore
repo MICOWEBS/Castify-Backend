@@ -29,10 +29,18 @@ yarn-error.log
 # Uploaded files & user content
 /storage/app/public/*
 !/storage/app/public/.gitkeep
+/storage/app/backups/*
+!/storage/app/backups/.gitkeep
+
+# Laravel cache files
+/bootstrap/cache/*
+!/bootstrap/cache/.gitignore
 
 # Additional ignores for specific development environments
 .DS_Store
 Thumbs.db
+*.swp
+*.swo
 
 # FFmpeg temporary files
 *.mp4
@@ -45,3 +53,4 @@ Thumbs.db
 
 # Render specific files
 .render-buildpacks
+.render/
